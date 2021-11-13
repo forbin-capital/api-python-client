@@ -10,8 +10,10 @@ class Object:
     def __init__(self, client=None, data=None) -> None:
         self._client = client
         self.id = data.get('id')
-        self.created_at = datetime.fromisoformat(
-            data.get('created_at')[:-1]).replace(tzinfo=pytz.UTC)
+        created_at = data.get('created_at')
+        self.created_at = \
+            datetime.fromisoformat(created_at[:-1]).replace(tzinfo=pytz.UTC) \
+                if created_at else created_at
     
     def __str__(self) -> str:
         return {
@@ -51,19 +53,22 @@ class Challenge(Object):
         super().__init__(client, data)
         self.finished = data.get('finished')
         self.prize = data.get('prize')
-        self.submission_start = datetime.fromisoformat(
-            data.get('submission_start')[:-1]).replace(tzinfo=pytz.UTC)
-        self.submission_end = datetime.fromisoformat(
-            data.get('submission_end')[:-1]).replace(tzinfo=pytz.UTC)
+        submission_start = data.get('submission_start')
+        self.submission_start = \
+            datetime.fromisoformat(submission_start[:-1]).replace(tzinfo=pytz.UTC) \
+                if submission_start else submission_start
+        submission_end = data.get('submission_end')
+        self.submission_end = \
+            datetime.fromisoformat(submission_end[:-1]).replace(tzinfo=pytz.UTC) \
+                if submission_end else submission_end
         self.x_live = pd.DataFrame(data=data.get('x_live'))
         self.x_test = pd.DataFrame(data=data.get('x_live'))
         self.x_train = pd.DataFrame(data=data.get('x_live'))
         self.y_train = pd.DataFrame(data=data.get('x_live'))
     
     def __dict__(self) -> dict:
-        return {
+        data = {
             'id': self.id,
-            'created_at': self.created_at.isoformat(),
             'finished': self.finished,
             'prize': self.prize,
             'submission_start': self.submission_start.isoformat(),
@@ -73,6 +78,9 @@ class Challenge(Object):
             'x_train': self.x_train.to_dict(orient='records'),
             'y_train': self.y_train.to_dict(orient='records'),
         }
+        if self.created_at:
+            data['created_at'] = self.created_at.isoformat()
+        return data
     
     
 
@@ -87,13 +95,15 @@ class GroundTruth(Object):
         self.y_test = pd.DataFrame(data=data.get('y_test'))
     
     def __dict__(self) -> dict:
-        return {
+        data = {
             'id': self.id,
-            'created_at': self.created_at.isoformat(),
             'challenge_id': self.challenge_id,
             'y_live': self.y_live.to_dict(orient='records'),
             'y_test': self.y_test.to_dict(orient='records'),
         }
+        if self.created_at:
+            data['created_at'] = self.created_at.isoformat()
+        return data
 
 class Submission(Object):
     
@@ -113,9 +123,8 @@ class Submission(Object):
         self.y_test = pd.DataFrame(data=data.get('y_test'))
     
     def __dict__(self) -> dict:
-        return {
+        data = {
             'id': self.id,
-            'created_at': self.created_at.isoformat(),
             'challenge_id': self.challenge_id,
             'confidence': self.confidence,
             'consistency': self.consistency,
@@ -127,6 +136,9 @@ class Submission(Object):
             'y_live': self.y_live.to_dict(orient='records'),
             'y_test': self.y_test.to_dict(orient='records'),
         }
+        if self.created_at:
+            data['created_at'] = self.created_at.isoformat()
+        return data
 
 class Transaction(Object):
     
@@ -140,14 +152,16 @@ class Transaction(Object):
         self.user_id = data.get('user_id')
     
     def __dict__(self) -> dict:
-        return {
+        data =  {
             'id': self.id,
-            'created_at': self.created_at.isoformat(),
             'challenge_id': self.challenge_id,
             'amount': self.amount,
             'category': self.category,
             'user_id': self.user_id,
         }
+        if self.created_at:
+            data['created_at'] = self.created_at.isoformat()
+        return data
 
 
 class Client:
@@ -201,8 +215,6 @@ class Client:
         Either a list of Challenge objects or one Challenge object.
         """
         data = self._get(route='challenges')
-        if len(data) == 1:
-            return Challenge(client=self, data=data[0])
         return [Challenge(client=self, data=d) for d in data]
     
     def ground_truths(self, id=None) -> Union[GroundTruth, list[GroundTruth]]:
@@ -217,8 +229,6 @@ class Client:
         Either a list of GroundTruth objects or one GroundTruth object.
         """
         data = self._get(route='groundtruths')
-        if len(data) == 1:
-            return GroundTruth(client=self, data=data[0])
         return [GroundTruth(client=self, data=d) for d in data]
     
     def submissions(self, id=None) -> Union[Submission, list[Submission]]:
@@ -233,8 +243,6 @@ class Client:
         Either a list of Submission objects or one Submission object.
         """
         data = self._get(route='submissions')
-        if len(data) == 1:
-            return Submission(client=self, data=data[0])
         return [Submission(client=self, data=d) for d in data]
     
     def transactions(self, id=None) -> Union[Transaction, list[Transaction]]:
@@ -249,8 +257,6 @@ class Client:
         Either a list of Transaction objects or one Transaction object.
         """
         data = self._get(route='transactions')
-        if len(data) == 1:
-            return Transaction(client=self, data=data[0])
         return [Transaction(client=self, data=d) for d in data]
     
     
