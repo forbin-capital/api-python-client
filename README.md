@@ -1,9 +1,12 @@
 # api-python-client
 
+## Installation
+
 ```bash
 pip install forbin
 ```
 
+## Use
 
 ```python
 from forbin.client import Client, Submission
@@ -11,8 +14,8 @@ from sklearn.ensemble import RandomForestClassifier
 
 
 client = Client(username='username', password='password')
-challenge = client.challenges()
-print(challenge)
+challenges = client.challenges()
+challenge = challenges[0]
 
 clf = RandomForestClassifier(max_depth=2, random_state=0)
 clf.fit(challenge.x_train, challenge.y_train)
